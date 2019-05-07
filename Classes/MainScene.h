@@ -4,6 +4,7 @@
 #include "cocos2d.h"
 #include "ui/CocosGUI.h"
 #include "ElevatorScheduler.h"
+#include "ElevatorDrawer.h"
 
 USING_NS_CC;
 
@@ -13,16 +14,19 @@ class MainScene : public cocos2d::Scene
 private:
 	Size visibleSize = Director::getInstance()->getVisibleSize();
 	Vec2 origin = Director::getInstance()->getVisibleOrigin();
+	DrawNode *floor[20];
+	Label *floorNumber[20];
 	ui::Button *floorButton[20][2];
-	Label* elevatorNumber[5][20];
-	Sprite* elevatorUP[5][20];
-	Sprite* elevatorDOWN[5][20];
-	//DrawNode *elevator[5];
+	Label *elevatorNumber[5][20];
+	Sprite *elevatorUP[5][20];
+	Sprite *elevatorDOWN[5][20];
 	ElevatorScheduler *es = new ElevatorScheduler();
+	//ElevatorDrawer *ed[5];
 public:
     static cocos2d::Scene* createScene();
 	void drawBuilding();
 	void drawElevatorState();
+	void drawElevator();
     virtual bool init();
 	virtual void update(float dt);
     // implement the "static create()" method manually

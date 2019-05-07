@@ -15,17 +15,17 @@ static void problemLoading(const char* filename)
     printf("Depending on how you compiled you might have to add 'Resources/' in front of filenames in HelloWorldScene.cpp\n");
 }
 
-// on "init" you need to initialize your instance
-
 void MainScene::drawBuilding()
 {
 	int x = 50;
 	for (int i = 0; i < 20; i++) {
-		DrawNode *floor = DrawNode::create();
-		Label *floorNumber = Label::create(String::createWithFormat("%i", i + 1)->getCString(), "Arial", 18);
-		floorNumber->setPosition(Vec2(10, i * 45 + 20));
-		floorNumber->setColor(Color3B::BLACK);
-		floor->drawSegment(Vec2(x, i * 45), Vec2(x + 800, i * 45), 1, Color4F::BLACK);
+		floor[i] = DrawNode::create();
+		floor[i]->retain();
+		floorNumber[i] = Label::createWithSystemFont(String::createWithFormat("%i", i + 1)->getCString(), "Arial", 18);
+		floorNumber[i]->retain();
+		floorNumber[i]->setPosition(Vec2(10, i * 45 + 20));
+		floorNumber[i]->setColor(Color3B::BLACK);
+		floor[i]->drawSegment(Vec2(x, i * 45), Vec2(x + 700, i * 45), 1, Color4F::BLACK);
 		floorButton[i][0] = ui::Button::create("up.png","up_sel.png","up_sel.png");
 		floorButton[i][1] = ui::Button::create("down.png", "down_sel.png", "down_sel.png");
 		floorButton[i][0]->setTag(i * 10);
@@ -34,7 +34,7 @@ void MainScene::drawBuilding()
 			floorButton[i][0]->getContentSize().height / 2 + 25 + i * 45));
 		floorButton[i][1]->setPosition(Vec2(floorButton[i][1]->getContentSize().width / 2 + 50,
 			floorButton[i][1]->getContentSize().height / 2 + 5 + i * 45));
-		floorButton[i][0]->addClickEventListener([&](Object* sender) {
+		floorButton[i][0]->addClickEventListener([&](Ref* sender) {
 			ui::Button *m = (ui::Button *)sender;
 			int flag = m->getTag();
 			int order = flag % 10 == 1 ? -1 : 1;
@@ -43,7 +43,7 @@ void MainScene::drawBuilding()
 			Person *person = new Person(floor, order);
 			es->callElevator(person);
 		});
-		floorButton[i][1]->addClickEventListener([&](Object* sender) {
+		floorButton[i][1]->addClickEventListener([&](Ref* sender) {
 			ui::Button *m = (ui::Button *)sender;
 			int flag = m->getTag();
 			int order = flag % 10 == 1 ? -1 : 1;
@@ -53,20 +53,21 @@ void MainScene::drawBuilding()
 			es->callElevator(person);
 		});
 		if(i != 19) this->addChild(floorButton[i][0]);
+		else floorButton[i][0]->retain();
 		if(i != 0) this->addChild(floorButton[i][1]);
-		this->addChild(floorNumber);
-		this->addChild(floor);
+		else floorButton[i][1]->retain();
+		this->addChild(floorNumber[i]);
+		this->addChild(floor[i]);
 	}
 }
 
 void MainScene::drawElevatorState()
 {
 	for (int i = 0; i < 5; i++) {
-		/*elevator[i] = DrawNode::create();
-		elevator[i]->drawSolidRect(cocos2d::Vec2(180 + 120 * i, 0), cocos2d::Vec2(230 + 120 * i, 45), cocos2d::Color4F::BLACK);*/
 		this->addChild(es->elevators[i]);
+		es->elevators[i]->retain();
 		for (int j = 0; j < 20; j++) {
-			elevatorNumber[i][j] = Label::create(String::createWithFormat("%i", 1)->getCString(), "Arial", 16);
+			elevatorNumber[i][j] = Label::createWithSystemFont(String::createWithFormat("%i", 1)->getCString(), "Arial", 16);
 			elevatorNumber[i][j]->setPosition(Vec2(150 + i * 120, 20 + 45 * j));
 			elevatorNumber[i][j]->setColor(Color3B::BLACK);
 
@@ -87,19 +88,29 @@ void MainScene::drawElevatorState()
 	}
 }
 
+//void MainScene::drawElevator()
+//{
+//	for (int i = 0; i < 5; i++) {
+//		ed[i] = ElevatorDrawer::createDrawer(i);
+//		addChild(ed[i]);
+//		ed[i]->retain();
+//	}
+//}
+
 bool MainScene::init()
 {
-    //////////////////////////////
-    // 1. super init first
     if ( !Scene::init() )
     {
         return false;
     }
-	auto backGround = LayerColor::create(ccc4(255, 255, 255, 255));
-	backGround->setVisible(true);
+	auto backGround = LayerColor::create(Color4B::WHITE);
 	this->addChild(backGround);
+	auto elevatorBG = LayerColor::create(Color4B::GRAY, 1050, 900);
+	elevatorBG->setPosition(Vec2(750, 0));
+	this->addChild(elevatorBG);
 	drawBuilding();
 	drawElevatorState();
+	//drawElevator();
 	scheduleUpdate();
     return true;
 }
@@ -109,10 +120,17 @@ void MainScene::update(float dt)
 	for (int i = 0; i < 5; i++) {
 		int floor = es->elevators[i]->getFloor();
 		int state = es->elevators[i]->getWorkState();
-		/*if (state != 0) {
-			auto moveTo = MoveTo::create(2, Vec2(0, 45 * state));
-			es->elevators[i]->runAction(moveTo);
-		}*/
+		int door = es->elevators[i]->getDoorState();
+
+		if (es->orderElevator[floor][0] == i) {
+			floorButton[floor - 1][0]->setEnabled(true);
+			es->orderElevator[floor][0] = 0;
+		}
+		if (es->orderElevator[floor][1] == i) {
+			floorButton[floor - 1][1]->setEnabled(true);
+			es->orderElevator[floor][1] = 0;
+		}
+
 		for (int j = 0; j < 20; j++) {
 			elevatorNumber[i][j]->setString(String::createWithFormat("%i", floor)->getCString());
 			if (es->elevators[i]->getWorkState() == Elevator::WAIT) {
