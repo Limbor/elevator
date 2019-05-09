@@ -41,10 +41,6 @@ public:
 		messageQueue.push(message(startFloor, order));
 		scheduleLock.unlock();
 	}
-
-	//在人进电梯的过程中讲UI中读取的目的楼层写入这个人之中
-	void orderFloor(int elevatorNumber, Person person) {
-	}
 	void tryToSchedule() {
 		while (true) {
 			while (messageQueue.empty()) std::this_thread::sleep_for(std::chrono::milliseconds(100));

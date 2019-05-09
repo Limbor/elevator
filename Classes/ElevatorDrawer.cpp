@@ -20,7 +20,13 @@ bool ElevatorDrawer::init() {
 }
 void ElevatorDrawer::enemyInit(int number) {
 	this->number = number;
-	bg = LayerColor::create(Color4B::BLACK, 200, 300);
-	addChild(bg);
+	
+	curentfFloor = Label::createWithSystemFont(String::createWithFormat("%i", 1)->getCString(), "Arial", 60);
+	curentfFloor->setColor(Color3B::RED);
+	curentfFloor->setPosition(35 , 250);
+	addChild(curentfFloor);
+	/*for (int i = 0; i < 20; i++) {
+
+	}*/
 	setPosition(755 + number * 210, 300);
 }

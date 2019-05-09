@@ -17,12 +17,8 @@ public:
 		startFloor = start;
 		this->order = order;
 	}
-	void setEnd() {
-		do {
-			srand((unsigned)time(NULL));
-			endFloor = rand() % 20 + 1;
-		} while ((endFloor - startFloor)*order < 0);
-		cout << "To:" << endFloor << endl;
+	Person(int end) {
+		endFloor = end;
 	}
 	int getNumber() { return number; }
 	int getStart() { return startFloor; }

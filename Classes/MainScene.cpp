@@ -88,14 +88,38 @@ void MainScene::drawElevatorState()
 	}
 }
 
-//void MainScene::drawElevator()
-//{
-//	for (int i = 0; i < 5; i++) {
-//		ed[i] = ElevatorDrawer::createDrawer(i);
-//		addChild(ed[i]);
-//		ed[i]->retain();
-//	}
-//}
+void MainScene::drawElevator()
+{
+	for (int i = 0; i < 5; i++) {
+		bg[i] = LayerColor::create(Color4B::BLACK, 200, 400);
+		bg[i]->setPosition(Vec2(755 + i * 210, 250));
+		addChild(bg[i]);
+		curentfFloor[i] = Label::createWithSystemFont(String::createWithFormat("%i", 1)->getCString(), "Arial", 60);
+		curentfFloor[i]->setColor(Color3B::RED);
+		curentfFloor[i]->setPosition(Vec2(800 + i * 210, 530));
+		addChild(curentfFloor[i]);
+		for (int j = 0; j < 20 ; j++) {
+			floors[i][j] = ui::Button::create(String::createWithFormat("elevator%i.png", j + 1)->getCString(),
+				String::createWithFormat("light%i.png", j + 1)->getCString(),
+				String::createWithFormat("light%i.png", j + 1)->getCString());
+			int x = j / 10;
+			int y = j % 10;
+			floors[i][j]->setPosition(Vec2(875 + i * 210 + x * 35, 275 + y * 35));
+			floors[i][j]->setTag((i + 1) * 100 + j + 1);
+			floors[i][j]->addClickEventListener([&](Ref* sender) {
+				ui::Button *b = (ui::Button*)sender;
+				int tag = b->getTag();
+				b->setEnabled(false);
+				int floor = tag % 100;
+				int number = tag / 100 - 1;
+				es->elevators[number]->elevatorLock.lock();
+				es->elevators[number]->addArriveList(new Person(floor));
+				es->elevators[number]->elevatorLock.unlock();
+			});
+			addChild(floors[i][j]);
+		}
+	}
+}
 
 bool MainScene::init()
 {
@@ -110,7 +134,7 @@ bool MainScene::init()
 	this->addChild(elevatorBG);
 	drawBuilding();
 	drawElevatorState();
-	//drawElevator();
+	drawElevator();
 	scheduleUpdate();
     return true;
 }
@@ -130,7 +154,11 @@ void MainScene::update(float dt)
 			floorButton[floor - 1][1]->setEnabled(true);
 			es->orderElevator[floor][1] = 0;
 		}
-
+		curentfFloor[i]->setString(String::createWithFormat("%i", floor)->getCString());
+		if (es->elevators[i]->arrive[floor] == 1) {
+			floors[i][floor - 1]->setEnabled(true);
+			es->elevators[i]->arrive[floor] = 0;
+		}
 		for (int j = 0; j < 20; j++) {
 			elevatorNumber[i][j]->setString(String::createWithFormat("%i", floor)->getCString());
 			if (es->elevators[i]->getWorkState() == Elevator::WAIT) {

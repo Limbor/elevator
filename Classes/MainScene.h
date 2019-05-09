@@ -4,7 +4,6 @@
 #include "cocos2d.h"
 #include "ui/CocosGUI.h"
 #include "ElevatorScheduler.h"
-#include "ElevatorDrawer.h"
 
 USING_NS_CC;
 
@@ -17,11 +16,16 @@ private:
 	DrawNode *floor[20];
 	Label *floorNumber[20];
 	ui::Button *floorButton[20][2];
+
 	Label *elevatorNumber[5][20];
 	Sprite *elevatorUP[5][20];
 	Sprite *elevatorDOWN[5][20];
+
+	LayerColor *bg[5];
+	ui::Button *floors[5][20];
+	Label *curentfFloor[5];
+
 	ElevatorScheduler *es = new ElevatorScheduler();
-	//ElevatorDrawer *ed[5];
 public:
     static cocos2d::Scene* createScene();
 	void drawBuilding();

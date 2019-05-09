@@ -20,6 +20,7 @@ public:
 	static const int OPEN = 4;
 	static const int CLOSE = 5;
 
+	int arrive[21] = { 0 };
 	vector<Person*> requestList;
 	vector<Person*> arriveList;
 	mutex elevatorLock;
@@ -70,12 +71,12 @@ public:
 				}
 			}
 		}
-		requestList.push_back(person);
 	}
 	void addArriveList(Person* person) {
-		person->setEnd();
+		arrive[person->getEnd()] = 1;
 		if (arriveList.size() == 0) {
 			arriveList.push_back(person);
+			if (workState == WAIT && person->getEnd() != floor) workState = (person->getEnd() - floor) > 0 ? UP : DOWN;
 		}
 		else {
 			for (vector<Person*>::iterator i = arriveList.begin(); i != arriveList.end(); i++) {
@@ -85,7 +86,6 @@ public:
 				}
 			}
 		}
-		arriveList.push_back(person);
 	}
 	void work() {
 		while (true) {
@@ -113,11 +113,12 @@ public:
 					clear();
 					drawSolidRect(cocos2d::Vec2(190 + 120 * number, 0), cocos2d::Vec2(190 + 120 * number + 50, 45), cocos2d::Color4F::GREEN);
 				}
-				if (arriveList.empty()) {
-					this->workState = (*i)->getOrder();
-				}
-				addArriveList(*i);
+				CC_SAFE_DELETE(*i);
 				i = requestList.erase(i);
+				if (requestList.size() == 0 && arriveList.size() == 0) workState = WAIT;
+				else if (requestList.empty() && !arriveList.empty()) {
+					if(workState * (arriveList.front()->getEnd() - floor) < 0) workState = -workState;
+				}
 				std::this_thread::sleep_for(std::chrono::milliseconds(2000));
 				continue;
 			}
@@ -134,10 +135,10 @@ public:
 					clear();
 					drawSolidRect(cocos2d::Vec2(190 + 120 * number, 0), cocos2d::Vec2(190 + 120 * number + 50, 45), cocos2d::Color4F::GREEN);
 				}
+				CC_SAFE_DELETE(*i);
 				i = arriveList.erase(i);
-				if (arriveList.size() == 0) {
-					workState = WAIT;
-				}
+				if (arriveList.empty()) workState = WAIT;
+				else if (workState * (arriveList.front()->getEnd() - floor) < 0) workState = -workState;
 				std::this_thread::sleep_for(std::chrono::milliseconds(2000));
 				continue;
 			}
