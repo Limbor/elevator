@@ -9,23 +9,24 @@ using namespace std;
 class Elevator : public cocos2d::DrawNode
 {
 private:
-	int floor;
-	int workState;
-	int doorState;
-	int number = 0;
+	int floor;													//所处楼层
+	int workState;												//工作状态
+	int doorState;												//门开关状态
+	bool isBroken;												//电梯是否损坏
+	int number = 0;												//电梯号
 public:
 	static const int UP = 1;
-	static const int DOWN = -1;
+	static const int DOWN = -1;	
 	static const int WAIT = 0;
 	static const int OPEN = 4;
 	static const int CLOSE = 5;
 
-	int arrive[21] = { 0 };
-	vector<Person*> requestList;
-	vector<Person*> arriveList;
-	mutex elevatorLock;
+	int arrive[21] = { 0 };										//楼层指令
+	vector<Person*> requestList;								//需求列表
+	vector<Person*> arriveList;									//到达列表
+	mutex elevatorLock;											//电梯锁
 
-	static Elevator* createElevator(int number) {
+	static Elevator* createElevator(int number) {				//新建电梯及初始化
 		Elevator* enemy = new Elevator();
 		if (enemy && enemy->init())
 		{
@@ -46,19 +47,23 @@ public:
 	void enemyInit(int number) {
 		floor = 1;
 		workState = WAIT;
-		doorState=CLOSE;
+		doorState = CLOSE;
+		isBroken = false;
 		this->number = number;
 		cocos2d::DrawNode::create();
 		cocos2d::DrawNode::drawSolidRect(cocos2d::Vec2(190 + 120 * number, 0), cocos2d::Vec2(240 + 120 * number, 45), cocos2d::Color4F::BLACK);
+		//电梯运转线程开启
 		std::thread t(&Elevator::work, this);
 		t.detach();
 	}
 	int getFloor() { return floor; }
 	int getWorkState() { return workState; }
+	bool getIsBroken() { return isBroken; }
 	void setWorkState(int state) { workState = state; }
 	void setDoorState(int state) { doorState = state; }
+	void hasBroken() { isBroken = true; }
 	int getDoorState() { return doorState; }
-	void addRequest(Person* person) {
+	void addRequest(Person* person) {							//添加需求
 		if (requestList.size() == 0) {
 			requestList.push_back(person);
 		}
@@ -72,7 +77,7 @@ public:
 			}
 		}
 	}
-	void addArriveList(Person* person) {
+	void addArriveList(Person* person) {						//添加到达
 		arrive[person->getEnd()] = 1;
 		if (arriveList.size() == 0) {
 			arriveList.push_back(person);
@@ -87,9 +92,10 @@ public:
 			}
 		}
 	}
-	void work() {
-		while (true) {
+	void work() {												//运行线程
+		while (!isBroken) {
 			while (!this->requestList.empty() || !this->arriveList.empty()) {
+				if (isBroken) break;
 				elevatorLock.lock();
 				move();
 				elevatorLock.unlock();
@@ -104,7 +110,7 @@ public:
 			workState = WAIT;
 		}
 	}
-	void move() {
+	void move() {												//需求判断
 		for (vector<Person*>::iterator i = requestList.begin(); i != requestList.end();)
 		{
 			if ((*i)->getStart() == floor) {
@@ -126,7 +132,7 @@ public:
 		}
 		isArrive();
 	}
-	void isArrive() {
+	void isArrive() {											//到达判断
 		for (vector<Person*>::iterator i = arriveList.begin(); i != arriveList.end();)
 		{
 			if ((*i)->getEnd() == floor) {
