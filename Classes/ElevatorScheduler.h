@@ -81,8 +81,8 @@ public:
 				if (elevators[elevatorNumber]->getWorkState() == Elevator::WAIT) {
 					elevators[elevatorNumber]->setWorkState(finalState);
 				}
-				if (order == UP) orderElevator[startFloor][0] = elevatorNumber;
-				else orderElevator[startFloor][1] = elevatorNumber;
+				if (order == UP) orderElevator[startFloor][0] = elevatorNumber + 1;
+				else orderElevator[startFloor][1] = elevatorNumber + 1;
 			}
 			for (int i = 0; i < 5; i++) elevators[i]->elevatorLock.unlock();
 			messageQueue.pop();

@@ -15,7 +15,7 @@ private:
 	bool isBroken;												//电梯是否损坏
 	int number = 0;												//电梯号
 public:
-	static const int UP = 1;
+	static const int UP = 1;									//电梯各个状态常量
 	static const int DOWN = -1;	
 	static const int WAIT = 0;
 	static const int OPEN = 4;
@@ -109,6 +109,8 @@ public:
 			}
 			workState = WAIT;
 		}
+		clear();
+		drawSolidRect(cocos2d::Vec2(190 + 120 * number, 0), cocos2d::Vec2(190 + 120 * number + 50, 45), cocos2d::Color4F::RED);
 	}
 	void move() {												//需求判断
 		for (vector<Person*>::iterator i = requestList.begin(); i != requestList.end();)

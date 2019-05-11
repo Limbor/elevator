@@ -25,6 +25,7 @@ private:
 	LayerColor *bg[5];									//电梯背景板
 	ui::Button *floors[5][20];							//电梯内楼层按钮
 	ui::Button *warning[5];								//电梯报警按钮
+	ui::Button *door[5][2];								//开关门按钮
 	DrawNode *elevatorState[5][2];						//电梯运行状态显示器
 	Label *curentfFloor[5];								//电梯内楼层显示器
 

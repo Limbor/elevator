@@ -118,7 +118,7 @@ void MainScene::drawElevator()
 			this->addChild(elevatorState[i][j]);
 		}
 		//添加报警按钮
-		warning[i] = ui::Button::create("Warning.png", "Warning.png", "Warning.png");
+		warning[i] = ui::Button::create("Warning.png");
 		warning[i]->setPosition(Vec2(840 + i * 210, 275));
 		warning[i]->setTag(50 + i);
 		warning[i]->addClickEventListener([&](Ref* sender) {
@@ -128,6 +128,12 @@ void MainScene::drawElevator()
 			b->setEnabled(false);
 		});
 		addChild(warning[i]);
+		//添加开关门按钮
+		for (int j = 0; j < 2; j++) {
+			door[i][j] = ui::Button::create(String::createWithFormat("door%i.png", j + 1)->getCString());
+			door[i][j]->setPosition(Vec2(780 + i * 210 + j * 30, 275));
+			this->addChild(door[i][j]);
+		}
 		//添加楼层按钮
 		for (int j = 0; j < 20 ; j++) {
 			floors[i][j] = ui::Button::create(String::createWithFormat("elevator%i.png", j + 1)->getCString(),
@@ -180,11 +186,11 @@ void MainScene::update(float dt)
 		int state = es->elevators[i]->getWorkState();
 		int door = es->elevators[i]->getDoorState();
 		//将已完成的楼层呼叫按钮关闭
-		if (es->orderElevator[floor][0] == i) {
+		if (es->orderElevator[floor][0] == i + 1) {
 			floorButton[floor - 1][0]->setEnabled(true);
 			es->orderElevator[floor][0] = 0;
 		}
-		if (es->orderElevator[floor][1] == i) {
+		if (es->orderElevator[floor][1] == i + 1) {
 			floorButton[floor - 1][1]->setEnabled(true);
 			es->orderElevator[floor][1] = 0;
 		}
@@ -213,6 +219,19 @@ void MainScene::update(float dt)
 			else {
 				if (state == Elevator::UP) elevatorUP[i][j]->setVisible(true);
 				else elevatorDOWN[i][j]->setVisible(true);
+			}
+		}
+		//将损坏的电梯的任务重新调度
+		if (es->elevators[i]->getIsBroken()) {
+			for (int j = 0; j < 20; j++) {
+				if (es->orderElevator[j + 1][0] == i + 1) {
+					es->callElevator(new Person(j + 1, 1));
+					es->orderElevator[j + 1][0] = 0;
+				}
+				else if (es->orderElevator[j + 1][1] == i + 1) {
+					es->callElevator(new Person(j + 1, -1));
+					es->orderElevator[j + 1][1] = 0;
+				}
 			}
 		}
 	}
